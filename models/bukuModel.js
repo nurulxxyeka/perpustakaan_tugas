@@ -2,55 +2,93 @@ const db = require('../config/database');
 
 const Buku = {
     // Ambil semua buku
-    getAll: (callback) => {
-        const query = 'SELECT * FROM buku ORDER BY created_at DESC';
-        db.query(query, callback);
+    getAll: async () => {
+        try {
+            const query = 'SELECT * FROM buku ORDER BY created_at DESC';
+            const [results] = await db.execute(query);
+            return results;
+        } catch (error) {
+            console.error('Error dalam getAll:', error);
+            throw error;
+        }
     },
 
     // Ambil buku berdasarkan ID
-    getById: (id, callback) => {
-        const query = 'SELECT * FROM buku WHERE id = ?';
-        db.query(query, [id], callback);
+    getById: async (id) => {
+        try {
+            const query = 'SELECT * FROM buku WHERE id = ?';
+            const [results] = await db.execute(query, [id]);
+            return results;
+        } catch (error) {
+            console.error('Error dalam getById:', error);
+            throw error;
+        }
     },
 
     // Buat buku baru
-    create: (data, callback) => {
-        const query = 'INSERT INTO buku (judul, penulis, tahun_terbit, isbn, status) VALUES (?, ?, ?, ?, ?)';
-        const values = [
-            data.judul, 
-            data.penulis, 
-            data.tahun_terbit, 
-            data.isbn, 
-            data.status || 'tersedia'
-        ];
-        db.query(query, values, callback);
+    create: async (data) => {
+        try {
+            const query = 'INSERT INTO buku (judul, penulis, tahun_terbit, isbn, status) VALUES (?, ?, ?, ?, ?)';
+            const values = [
+                data.judul, 
+                data.penulis, 
+                data.tahun_terbit, 
+                data.isbn, 
+                data.status || 'tersedia'
+            ];
+            
+            const [results] = await db.execute(query, values);
+            return results;
+        } catch (error) {
+            console.error('Error dalam create:', error);
+            throw error;
+        }
     },
 
     // Update buku
-    update: (id, data, callback) => {
-        const query = 'UPDATE buku SET judul = ?, penulis = ?, tahun_terbit = ?, isbn = ?, status = ? WHERE id = ?';
-        const values = [
-            data.judul, 
-            data.penulis, 
-            data.tahun_terbit, 
-            data.isbn, 
-            data.status, 
-            id
-        ];
-        db.query(query, values, callback);
+    update: async (id, data) => {
+        try {
+            const query = 'UPDATE buku SET judul = ?, penulis = ?, tahun_terbit = ?, isbn = ?, status = ? WHERE id = ?';
+            const values = [
+                data.judul, 
+                data.penulis, 
+                data.tahun_terbit, 
+                data.isbn, 
+                data.status, 
+                id
+            ];
+            
+            const [results] = await db.execute(query, values);
+            return results;
+        } catch (error) {
+            console.error('Error dalam update:', error);
+            throw error;
+        }
     },
 
     // Hapus buku
-    delete: (id, callback) => {
-        const query = 'DELETE FROM buku WHERE id = ?';
-        db.query(query, [id], callback);
+    delete: async (id) => {
+        try {
+            const query = 'DELETE FROM buku WHERE id = ?';
+            const [results] = await db.execute(query, [id]);
+            return results;
+        } catch (error) {
+            console.error('Error dalam delete:', error);
+            throw error;
+        }
     },
 
     // Cari buku
-    search: (keyword, callback) => {
-        const query = 'SELECT * FROM buku WHERE judul LIKE ? OR penulis LIKE ?';
-        const searchTerm = `%${keyword}%`;
-        db.query(query, [searchTerm, searchTerm], callback);
+    search: async (keyword) => {
+        try {
+            const query = 'SELECT * FROM buku WHERE judul LIKE ? OR penulis LIKE ?';
+            const searchTerm = `%${keyword}%`;
+            const [results] = await db.execute(query, [searchTerm, searchTerm]);
+            return results;
+        } catch (error) {
+            console.error('Error dalam search:', error);
+            throw error;
+        }
     }
 };
 

@@ -2,38 +2,32 @@ const Buku = require('../models/bukuModel');
 
 const bukuController = {
     // Ambil semua buku
-    getAllBuku: (req, res) => {
-        Buku.getAll((err, results) => {
-            if (err) {
-                console.error('Error mengambil data buku:', err);
-                return res.status(500).json({
-                    success: false,
-                    message: 'Terjadi kesalahan server',
-                    error: err.message
-                });
-            }
+    getAllBuku: async (req, res) => {
+        try {
+            const books = await Buku.getAll();
+            
             res.json({
                 success: true,
                 message: 'Data buku berhasil diambil',
-                data: results
+                data: books
             });
-        });
+        } catch (error) {
+            console.error('Error mengambil data buku:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Terjadi kesalahan server',
+                error: error.message
+            });
+        }
     },
 
     // Ambil buku berdasarkan ID
-    getBukuById: (req, res) => {
-        const id = req.params.id;
-        Buku.getById(id, (err, results) => {
-            if (err) {
-                console.error('Error mengambil data buku:', err);
-                return res.status(500).json({
-                    success: false,
-                    message: 'Terjadi kesalahan server',
-                    error: err.message
-                });
-            }
+    getBukuById: async (req, res) => {
+        try {
+            const id = req.params.id;
+            const books = await Buku.getById(id);
             
-            if (results.length === 0) {
+            if (books.length === 0) {
                 return res.status(404).json({
                     success: false,
                     message: 'Buku tidak ditemukan'
@@ -43,84 +37,84 @@ const bukuController = {
             res.json({
                 success: true,
                 message: 'Data buku berhasil diambil',
-                data: results[0]
+                data: books[0]
             });
-        });
+        } catch (error) {
+            console.error('Error mengambil data buku:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Terjadi kesalahan server',
+                error: error.message
+            });
+        }
     },
 
     // Buat buku baru
-    createBuku: (req, res) => {
-        const { judul, penulis, tahun_terbit, isbn, status } = req.body;
+    createBuku: async (req, res) => {
+        try {
+            const { judul, penulis, tahun_terbit, isbn, status } = req.body;
 
-        // Validasi input
-        if (!judul || !penulis) {
-            return res.status(400).json({
-                success: false,
-                message: 'Judul dan penulis harus diisi'
-            });
-        }
-
-        const bukuData = {
-            judul,
-            penulis,
-            tahun_terbit: tahun_terbit || null,
-            isbn: isbn || null,
-            status: status || 'tersedia'
-        };
-
-        Buku.create(bukuData, (err, results) => {
-            if (err) {
-                console.error('Error membuat buku:', err);
-                return res.status(500).json({
+            // Validasi input
+            if (!judul || !penulis) {
+                return res.status(400).json({
                     success: false,
-                    message: 'Gagal membuat buku',
-                    error: err.message
+                    message: 'Judul dan penulis harus diisi'
                 });
             }
+
+            const bukuData = {
+                judul,
+                penulis,
+                tahun_terbit: tahun_terbit || null,
+                isbn: isbn || null,
+                status: status || 'tersedia'
+            };
+
+            const result = await Buku.create(bukuData);
 
             res.status(201).json({
                 success: true,
                 message: 'Buku berhasil dibuat',
                 data: {
-                    id: results.insertId,
+                    id: result.insertId,
                     ...bukuData
                 }
             });
-        });
+        } catch (error) {
+            console.error('Error membuat buku:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Gagal membuat buku',
+                error: error.message
+            });
+        }
     },
 
     // Update buku
-    updateBuku: (req, res) => {
-        const id = req.params.id;
-        const { judul, penulis, tahun_terbit, isbn, status } = req.body;
+    updateBuku: async (req, res) => {
+        try {
+            const id = req.params.id;
+            const { judul, penulis, tahun_terbit, isbn, status } = req.body;
 
-        // Validasi input
-        if (!judul || !penulis) {
-            return res.status(400).json({
-                success: false,
-                message: 'Judul dan penulis harus diisi'
-            });
-        }
-
-        const bukuData = {
-            judul,
-            penulis,
-            tahun_terbit: tahun_terbit || null,
-            isbn: isbn || null,
-            status: status || 'tersedia'
-        };
-
-        Buku.update(id, bukuData, (err, results) => {
-            if (err) {
-                console.error('Error mengupdate buku:', err);
-                return res.status(500).json({
+            // Validasi input
+            if (!judul || !penulis) {
+                return res.status(400).json({
                     success: false,
-                    message: 'Gagal mengupdate buku',
-                    error: err.message
+                    message: 'Judul dan penulis harus diisi'
                 });
             }
 
-            if (results.affectedRows === 0) {
+            const bukuData = {
+                judul,
+                penulis,
+                tahun_terbit: tahun_terbit || null,
+                isbn: isbn || null,
+                status: status || 'tersedia'
+            };
+
+            const result = await Buku.update(id, bukuData);
+
+            if (result.affectedRows === 0) {
                 return res.status(404).json({
                     success: false,
                     message: 'Buku tidak ditemukan'
@@ -135,24 +129,23 @@ const bukuController = {
                     ...bukuData
                 }
             });
-        });
+        } catch (error) {
+            console.error('Error mengupdate buku:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Gagal mengupdate buku',
+                error: error.message
+            });
+        }
     },
 
     // Hapus buku
-    deleteBuku: (req, res) => {
-        const id = req.params.id;
+    deleteBuku: async (req, res) => {
+        try {
+            const id = req.params.id;
+            const result = await Buku.delete(id);
 
-        Buku.delete(id, (err, results) => {
-            if (err) {
-                console.error('Error menghapus buku:', err);
-                return res.status(500).json({
-                    success: false,
-                    message: 'Gagal menghapus buku',
-                    error: err.message
-                });
-            }
-
-            if (results.affectedRows === 0) {
+            if (result.affectedRows === 0) {
                 return res.status(404).json({
                     success: false,
                     message: 'Buku tidak ditemukan'
@@ -163,36 +156,43 @@ const bukuController = {
                 success: true,
                 message: 'Buku berhasil dihapus'
             });
-        });
+        } catch (error) {
+            console.error('Error menghapus buku:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Gagal menghapus buku',
+                error: error.message
+            });
+        }
     },
 
     // Cari buku
-    searchBuku: (req, res) => {
-        const { keyword } = req.query;
+    searchBuku: async (req, res) => {
+        try {
+            const { keyword } = req.query;
 
-        if (!keyword) {
-            return res.status(400).json({
-                success: false,
-                message: 'Keyword pencarian harus diisi'
-            });
-        }
-
-        Buku.search(keyword, (err, results) => {
-            if (err) {
-                console.error('Error mencari buku:', err);
-                return res.status(500).json({
+            if (!keyword) {
+                return res.status(400).json({
                     success: false,
-                    message: 'Terjadi kesalahan saat pencarian',
-                    error: err.message
+                    message: 'Keyword pencarian harus diisi'
                 });
             }
+
+            const results = await Buku.search(keyword);
 
             res.json({
                 success: true,
                 message: 'Hasil pencarian berhasil diambil',
                 data: results
             });
-        });
+        } catch (error) {
+            console.error('Error mencari buku:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Terjadi kesalahan saat pencarian',
+                error: error.message
+            });
+        }
     }
 };
 

@@ -1,7 +1,6 @@
 version: '3.8'
 
 services:
-  # Service untuk aplikasi Node.js
   app:
     build: .
     ports:
@@ -13,13 +12,18 @@ services:
       - DB_NAME=perpustakaan
       - PORT=3000
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
     volumes:
       - .:/app
       - /app/node_modules
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
-  # Service untuk MySQL database
   mysql:
     image: mysql:8.0
     environment:
@@ -31,8 +35,12 @@ services:
       - mysql_data:/var/lib/mysql
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  # Optional: phpMyAdmin untuk management database
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
     environment:
@@ -42,7 +50,8 @@ services:
     ports:
       - "8080:80"
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
     restart: unless-stopped
 
 volumes:
